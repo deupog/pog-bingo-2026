@@ -1,0 +1,44 @@
+name: Deploy to GitHub Pages
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Generate runtime configuration
+        env:
+          QUESTION_CSV_URL: ${{ secrets.POG_QUESTION_CSV_URL }}
+          SUBMIT_URL: ${{ secrets.POG_SUBMIT_URL }}
+        run: |
+          node -e 'const fs = require("fs"); const config = { QUESTION_CSV_URL: process.env.QUESTION_CSV_URL || "", SUBMIT_URL: process.env.SUBMIT_URL || "" }; fs.writeFileSync("config.js", `window.POG_CONFIG = ${JSON.stringify(config)};\n`);'
+
+      - name: Configure Pages
+        uses: actions/configure-pages@v5
+
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: .
+
+      - name: Deploy to Pages
+        id: deployment
+        uses: actions/deploy-pages@v4

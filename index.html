@@ -1,0 +1,96 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="A question bingo game" />
+    <title>Question Bingo</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="styles.css?v=2" />
+  </head>
+  <body>
+    <main class="app-shell">
+      <header class="hero">
+        <div class="brand-mark" aria-hidden="true">✦</div>
+        <div>
+          <p class="eyebrow">POG Bingo</p>
+          <h1>Kartını doldur.<br /><em>İnsanlarla konuş.</em></h1>
+        </div>
+        <div class="hero-note">
+          <span class="live-dot"></span>
+          <span id="sourceStatus">Sorular yükleniyor...</span>
+        </div>
+      </header>
+
+      <section class="game-toolbar" aria-label="Game progress">
+        <div>
+          <p class="section-label">Tablon</p>
+          <p class="progress-copy">16'da <strong id="answeredCount">0</strong> cevaplandı</p>
+        </div>
+        <div class="progress-track" aria-hidden="true"><span id="progressBar"></span></div>
+        <button class="submit-button" id="submitButton" type="button">Bingomu yolla<span>→</span></button>
+      </section>
+
+      <section class="board-wrap">
+        <div class="board" id="board" aria-live="polite"></div>
+        <div class="board-loading" id="loadingState">
+          <div class="spinner"></div>
+          <p>Soruların karılıyor...</p>
+        </div>
+      </section>
+
+      <footer>
+        <p><span class="footer-star">✦</span>Yalan cevap vermeyin.</p>
+        <p id="gameId"></p>
+      </footer>
+    </main>
+
+    <dialog class="modal" id="answerModal" aria-labelledby="modalQuestion">
+      <form method="dialog" class="modal-card" id="answerForm">
+        <button class="icon-button close-button" id="closeAnswer" type="button" aria-label="Close">×</button>
+        <p class="section-label">Soru <span id="modalPosition"></span></p>
+        <h2 id="modalQuestion"></h2>
+        <label class="answer-label" for="answerInput">Cevabın</label>
+        <textarea id="answerInput" rows="4" maxlength="500" placeholder="Cevabın buraya..." required></textarea>
+        <p class="modal-hint" id="answerHint">Bu cevabı sonradan değiştirebilirsin.</p>
+        <div class="modal-actions">
+          <button class="secondary-button" id="backAnswer" type="button">Geri dön</button>
+          <button class="secondary-button hidden" id="removeAnswer" type="button">Cevabımı sil</button>
+          <button class="primary-button" id="saveAnswer" type="submit">Cevabımı kaydet <span>↗</span></button>
+        </div>
+      </form>
+    </dialog>
+
+    <dialog class="modal" id="submitModal" aria-labelledby="submitTitle">
+      <form method="dialog" class="modal-card" id="submitForm">
+        <button class="icon-button close-button" id="closeSubmit" type="button" aria-label="Close">×</button>
+        <p class="section-label">Son bir soru</p>
+        <h2 id="submitTitle">Bu kart kimin?</h2>
+        <p class="modal-description">Seni tanıyabileceğimiz bir isim/öğrenci no. yaz. İsmin sana ait olmalı.</p>
+        <label class="answer-label" for="usernameInput">İsim/soyisim</label>
+        <input id="usernameInput" type="text" maxlength="40" placeholder="e.g. Ahmet Çeçenoğlu" required />
+        <p class="form-error" id="submitError" role="alert"></p>
+        <div class="modal-actions">
+          <button class="secondary-button" id="cancelSubmit" type="button">Geri dön</button>
+          <button class="primary-button" id="finishSubmit" type="submit">Kartımı kaydet ve yolla <span>↗</span></button>
+        </div>
+      </form>
+    </dialog>
+
+    <dialog class="modal result-modal" id="resultModal" aria-labelledby="resultTitle">
+      <div class="modal-card">
+        <p class="section-label" id="resultKicker">Kart kaydedildi</p>
+        <h2 id="resultTitle"></h2>
+        <p class="modal-description" id="resultDescription"></p>
+        <div class="result-list" id="resultList"></div>
+        <button class="primary-button full-width" id="closeResult" type="button">Bitti</button>
+      </div>
+    </dialog>
+
+    <div class="toast" id="toast" role="status"></div>
+    <script src="config.js"></script>
+    <script src="script.js?v=2"></script>
+  </body>
+</html>
