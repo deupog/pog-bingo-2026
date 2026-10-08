@@ -58,18 +58,18 @@ function parseCsv(text) {
 
 async function loadQuestions() {
   if (!CONFIG.QUESTION_CSV_URL) {
-    $("#sourceStatus").textContent = "Demo question pool";
+    $("#sourceStatus").textContent = "Demo soru kaynak listesi";
     return DEMO_QUESTIONS;
   }
   const response = await fetch(CONFIG.QUESTION_CSV_URL);
-  if (!response.ok) throw new Error("Question sheet could not be loaded.");
+  if (!response.ok) throw new Error("Soru kaynak listesi yüklenemedi.");
   const rows = parseCsv(await response.text());
   const header = rows.length ? rows[0].map((cell) => cell.toLowerCase()) : [];
   const questionHeaderIndex = header.findIndex((cell) => cell === "question");
   const questionColumn = Math.max(0, questionHeaderIndex < 0 ? 0 : questionHeaderIndex);
   const questions = rows.slice(1).map((row) => row[questionColumn]).filter(Boolean);
-  if (questions.length < CONFIG.QUESTIONS_PER_CARD) throw new Error("The question sheet needs at least 16 questions.");
-  $("#sourceStatus").textContent = "Live question pool";
+  if (questions.length < CONFIG.QUESTIONS_PER_CARD) throw new Error("Kaynak listede en az 16 soru lazım.");
+  $("#sourceStatus").textContent = "Canlı soru kaynak listesi";
   return questions;
 }
 
@@ -126,16 +126,16 @@ async function submitCard(username) {
   if (!CONFIG.SUBMIT_URL) return { ok: true, demo: true, username, answers: payload.answers };
   const response = await fetch(CONFIG.SUBMIT_URL, { method: "POST", headers: { "Content-Type": "text/plain;charset=utf-8" }, body: JSON.stringify(payload) });
   const result = await response.json();
-  if (!response.ok) throw new Error(result.error || "The card could not be saved.");
+  if (!response.ok) throw new Error(result.error || "Kart kaydedilemedi.");
   return result;
 }
 
 function showResult(result) {
   const duplicate = result.duplicate;
-  $("#resultKicker").textContent = duplicate ? "Username already picked" : result.demo ? "Demo card saved" : "Card saved";
-  $("#resultTitle").textContent = duplicate ? `Welcome back, ${result.username}` : `Nice work, ${result.username}!`;
-  $("#resultDescription").textContent = duplicate ? "This username has already been used. Here is the card that was saved with it:" : "Here are the 16 questions and answers from your card:";
-  $("#resultList").innerHTML = result.answers.map((item, index) => `<div class="result-item"><strong>${index + 1}. ${escapeHtml(item.question)}</strong><span>${escapeHtml(item.answer || "No answer")}</span></div>`).join("");
+  $("#resultKicker").textContent = duplicate ? "Bu isim çoktan kullanıldı" : result.demo ? "Demo kardı kaydedildi" : "Kardınız kaydedildi";
+  $("#resultTitle").textContent = duplicate ? `Tekrardan hoşgeldin, ${result.username}` : `Cevapların bize ulaştı, ${result.username}!`;
+  $("#resultDescription").textContent = duplicate ? "Bu kullanıcı adı çoktan kullanıldı. İşte bu kullanıcı adıyla kaydedilmiş kart:" : "İşte sorular ve sizin cevaplarınız:";
+  $("#resultList").innerHTML = result.answers.map((item, index) => `<div class="result-item"><strong>${index + 1}. ${escapeHtml(item.question)}</strong><span>${escapeHtml(item.answer || "Cevapsız")}</span></div>`).join("");
   $("#resultModal").showModal();
 }
 
@@ -144,14 +144,14 @@ $("#answerForm").addEventListener("submit", (event) => {
   if ($("#answerInput").disabled) {
     $("#answerInput").disabled = false;
     $("#answerInput").focus();
-    $("#saveAnswer").textContent = "Save answer";
-    $("#answerHint").textContent = "Update your answer, then save it.";
+    $("#saveAnswer").textContent = "Cevabı kaydet";
+    $("#answerHint").textContent = "Cevabı güncelle, sonra da kaydet.";
     return;
   }
   const answer = $("#answerInput").value.trim();
   if (!answer) return;
   state.answers.set(state.activeIndex, answer);
-  closeDialog($("#answerModal")); renderBoard(); showToast("Answer saved.");
+  closeDialog($("#answerModal")); renderBoard(); showToast("Cevap kaydedildi.");
 });
 $("#answerInput").addEventListener("input", () => { $("#saveAnswer").disabled = false; });
 $("#answerForm").addEventListener("click", (event) => { if (event.target === $("#answerModal")) closeDialog($("#answerModal")); });
@@ -180,8 +180,8 @@ $("#closeResult").addEventListener("click", () => closeDialog($("#resultModal"))
     const pool = await loadQuestions();
     state.questions = shuffle(pool).slice(0, CONFIG.QUESTIONS_PER_CARD);
     $("#loadingState").classList.add("hidden"); renderBoard();
-    $("#gameId").textContent = `CARD ${Math.random().toString(36).slice(2, 8).toUpperCase()}`;
+    $("#gameId").textContent = `KART ${Math.random().toString(36).slice(2, 8).toUpperCase()}`;
   } catch (error) {
-    $("#loadingState").innerHTML = `<p class="form-error">${escapeHtml(error.message)}<br />Check your Google Sheet URL and try again.</p>`;
+    $("#loadingState").innerHTML = `<p class="form-error">${escapeHtml(error.message)}<br />Server hatası... Google Sheet URL'ini kontrol et ve tekrar dene.</p>`;
   }
 })();
