@@ -79,8 +79,8 @@ function renderBoard() {
     const answer = state.answers.get(index);
     return `<button class="question-card ${answer ? "answered" : ""}" data-index="${index}" type="button" aria-label="${answer ? "Edit answer for " : "Answer "}question ${index + 1}">
       <span class="card-inner">
-        <span class="card-face card-front"><span><span class="card-number">${String(index + 1).padStart(2, "0")}</span><span class="card-question">${escapeHtml(question)}</span></span><span class="card-cta">Tap to answer</span></span>
-        <span class="card-face card-back"><span><span class="card-number">${String(index + 1).padStart(2, "0")} - ANSWERED</span><span class="answer-preview">${escapeHtml(answer || "")}</span></span><span class="card-cta">Tap to edit</span></span>
+        <span class="card-face card-front"><span><span class="card-number">${String(index + 1).padStart(2, "0")}</span><span class="card-question">${escapeHtml(question)}</span></span><span class="card-cta">Cevaplamak için dokun</span></span>
+        <span class="card-face card-back"><span><span class="card-number">${String(index + 1).padStart(2, "0")} - ANSWERED</span><span class="answer-preview">${escapeHtml(answer || "")}</span></span><span class="card-cta">Cevabını değiştirmek için dokun</span></span>
       </span>
     </button>`;
   }).join("");
@@ -92,12 +92,28 @@ function escapeHtml(value) {
   return value.replace(/[&<>"']/g, (character) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#039;" }[character]));
 }
 
+function hasCompletedLine() {
+  const sideLength = Math.sqrt(CONFIG.QUESTIONS_PER_CARD);
+  const lines = [];
+
+  for (let row = 0; row < sideLength; row += 1) {
+    lines.push(Array.from({ length: sideLength }, (_, column) => row * sideLength + column));
+    lines.push(Array.from({ length: sideLength }, (_, column) => column * sideLength + row));
+  }
+
+  lines.push(Array.from({ length: sideLength }, (_, index) => index * (sideLength + 1)));
+  lines.push(Array.from({ length: sideLength }, (_, index) => (index + 1) * (sideLength - 1)));
+
+  return lines.some((line) => line.every((index) => state.answers.has(index)));
+}
+
 function updateProgress() {
   const count = state.answers.size;
+  const submittable = hasCompletedLine();
   $("#answeredCount").textContent = count;
   $("#progressBar").style.width = `${(count / CONFIG.QUESTIONS_PER_CARD) * 100}%`;
-  $("#submitButton").disabled = count !== CONFIG.QUESTIONS_PER_CARD;
-  $("#submitButton").style.opacity = count === CONFIG.QUESTIONS_PER_CARD ? "1" : ".55";
+  $("#submitButton").disabled = !submittable;
+  $("#submitButton").style.opacity = submittable ? "1" : ".55";
 }
 
 function openAnswer(index) {
@@ -161,7 +177,7 @@ $("#removeAnswer").addEventListener("click", () => {
   state.answers.delete(state.activeIndex); closeDialog($("#answerModal")); renderBoard(); showToast("Answer removed.");
 });
 $("#submitButton").addEventListener("click", () => {
-  if (state.answers.size !== CONFIG.QUESTIONS_PER_CARD) return showToast("Answer every question before submitting.");
+  if (!hasCompletedLine()) return showToast("Answer a complete row, column, or diagonal before submitting.");
   $("#usernameInput").value = ""; $("#submitError").textContent = ""; $("#submitModal").showModal();
 });
 $("#cancelSubmit").addEventListener("click", () => closeDialog($("#submitModal")));
