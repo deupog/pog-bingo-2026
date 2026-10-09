@@ -6,7 +6,7 @@
 2. Publish the sheet as CSV: **File → Share → Publish to web → CSV**.
 3. Copy [config.example.js](./config.example.js) to `config.js` and put the published URL in `QUESTION_CSV_URL`.
 
-To save submissions, open **Extensions → Apps Script** from the destination spreadsheet, paste in [Code.gs](./Code.gs), and create a `Questions` sheet and deploy the script as a web app (**Execute as: Me**, **Who has access: Anyone**). The web app accepts a JSON `POST` with this shape:
+To save submissions, open **Extensions → Apps Script** from the destination spreadsheet, paste in [Code.gs](./Code.gs), and create a `Questions` sheet. The web app accepts a JSON `POST` with this shape:
 
 ```json
 {
@@ -16,6 +16,16 @@ To save submissions, open **Extensions → Apps Script** from the destination sp
 ```
 
 The script stores submissions in an `Answers` sheet and returns `{ "ok": true, "username": "…", "answers": [...] }` for a new user. For an existing username, it returns the saved card with `"duplicate": true`. Put the deployment URL in `SUBMIT_URL` in `config.js`. The endpoint must allow requests from the site origin.
+
+### Apps Script queue setup
+
+The web endpoint queues submissions in Apps Script Properties instead of reading or writing Sheets on every request. A time-driven trigger writes the queue as one batch every five minutes, but only when at least two submissions are waiting. Duplicate usernames are rejected immediately, including while a submission is still queued.
+
+After pasting the code:
+
+1. If the `Answers` sheet already contains submissions, run `initializeUsernameIndex` once from the Apps Script editor.
+2. Run `installQueueTrigger` once and authorize the script. This replaces any existing `processQueue` trigger with one that runs every five minutes.
+3. Deploy or update the web app (**Execute as: Me**, **Who has access: Anyone**).
 
 ## GitHub Pages
 
